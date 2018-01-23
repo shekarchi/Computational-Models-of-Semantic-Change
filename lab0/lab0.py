@@ -147,11 +147,19 @@ def main():
         print (sen)
     print ('\nGenerating sentences by sampling from 2-gram counts')
     for i in range(6,11):
-        sen = get_sentence_from_twogram(bigrams, 'and', i)
+        start = get_sentence_from_onegram(unigrams, '', 1)
+        start = start[:-1]
+        sen = get_sentence_from_twogram(bigrams, start, i)
         print (sen)
     print ('\nGenerating sentences by sampling from 3-gram counts')
     for i in range(6,11):
-        sen = get_sentence_from_threegram(trigrams, 'and', 'the', i)
+        start = get_sentence_from_onegram(unigrams, '', 1)
+        start = start[:-1]
+        after_start = get_sentence_from_twogram(bigrams, start, 2)
+        inits = after_start.split(' ')
+        start = inits[0]
+        after_start = inits[1]
+        sen = get_sentence_from_threegram(trigrams, start, after_start, i)
         print (sen)
 
 if __name__ == "__main__":
