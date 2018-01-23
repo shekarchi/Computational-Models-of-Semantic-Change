@@ -1,4 +1,10 @@
-In this lab, it is asked to collect n-gram data from a corpora (n = 1, 2, 3), tabulate them in .csv files, and generate 5 English sentences of length = 6 to 10 (in n-gram orders) by sampling from the data collected.
+In this lab, it is asked to collect n-gram data from a corpora (n = 1, 2, 3), 
+tabulate them in .csv files, 
+and generate 5 English sentences of length = 6 to 10 (in n-gram orders) by sampling from the data collected.
+
+For running the code, a text file should be provided.
+Then, filenames for saving 1-3-grams data should be provided in order.
+
 The following lines are the output of lab0.py:
 
 "
