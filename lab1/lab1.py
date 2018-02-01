@@ -13,6 +13,7 @@ from collections import Counter
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
 import math
+import scipy as sp
 
 
 n=5000
@@ -56,7 +57,6 @@ def construct_M1(words, W, index):
         count = each[1]
         if index1>=0 and index2>=0:
             M1[index1][index2] = count
-    #print(M1[0:1][0:1])
     return M1
 
 #step 4
@@ -70,13 +70,17 @@ def construct_M1_plus(M1):
     w_sum = M1.sum(axis=1)
     c_sum = M1.sum(axis=0)
     total = w_sum.sum()
+    print (total)
     for i in range(n):#row-w
         for j in range(n):#column-c
             p_w_c = M1[i][j]/total
             p_w = w_sum[i]/total
             p_c = c_sum[j]/total
 #            print (p_w_c, p_w, p_c, I)
-            frac = (p_w_c)/(p_w*p_c)
+            if p_w==0 or p_c==0:
+                frac = 0
+            else:
+                frac = (p_w_c)/(p_w*p_c)
             PMI = np.log(frac)
             M1_plus[i][j] = max (PMI, 0.0)
     return M1_plus
@@ -86,7 +90,7 @@ def construct_M2(M, compo_num):
     print(M.shape)
     svd = TruncatedSVD(n_components=compo_num)
     svd.fit(M, (n, n))
-    print(svd.components_)
+#    print(svd.components_)
     M2 = svd.transform(M)
     print(M2.shape)
     
@@ -96,6 +100,8 @@ def cosine_sim(vec1, vec2):
     cos = np.dot(vec1, vec2)
     x = math.sqrt(np.dot(vec1, vec1))
     y = math.sqrt(np.dot(vec2, vec2))
+    if math.isnan(cos/(x*y)):
+        print (x, y, cos)
     return  cos / (x * y)
 
 def predict_sims(M, P, word_index):
@@ -105,7 +111,8 @@ def predict_sims(M, P, word_index):
         dist1 = M[index1]
         index2 = word_index[pair[1]]
         dist2 = M[index2]
-        sims.append(cosine_sim(dist1, dist2))
+        sim = cosine_sim(dist1, dist2)
+        sims.append(sim)
     return sims
 
 def main():
@@ -114,36 +121,49 @@ def main():
     M1 = construct_M1(words, W, w_index)
     #print (M1)
     M1_plus = construct_M1_plus(M1)
-    #print (M1_plus)
+#    print (M1_plus)
     
     #step 5
-#    M2_10 = construct_M2(M1_plus, 10)
-#    print(M2_10.shape)
-#    M2_50 = construct_M2(M1_plus, 50)
-#    print(M2_50.shape)
-#    M2_100 = construct_M2(M1_plus, 100)
-#    print(M2_100.shape)
+    M2_10 = construct_M2(M1_plus, 10)
+    print(M2_10.shape)
+    M2_50 = construct_M2(M1_plus, 50)
+    print(M2_50.shape)
+    M2_100 = construct_M2(M1_plus, 100)
+    print(M2_100.shape)
     
     #step 6
     P = []
+    S = []
     for each in judged_pairs:
-        if (each[0] in words) and (each[1] in words):
+        if (each[0] in W) and (each[1] in W):
             P.append(each)
-    print (len(P), P)
+            S.append(each[2])
+    print (P)
+    #print (S)
     
     #step 7
-    M1_pred = predict_sims(M1, P, w_index)
-    print (M1_pred)
-    M1_plus_pred = predict_sims(M1_plus, P, w_index)
-    print (M1_plus_pred)
-#    M2_10_pred = predict_sims(M2_10, P, w_index)
-#    print (M2_10_pred)
-#    M2_50_pred = predict_sims(M2_50, P, w_index)
-#    print (M2_50_pred)
-#    M2_100_pred = predict_sims(M2_100, P, w_index)
-#    print (M2_100_pred)
+    S_M1 = predict_sims(M1, P, w_index)
+    print ('S_M1: ', S_M1)
+    S_M1_plus = predict_sims(M1_plus, P, w_index)
+    print ('S_M1_plus: ', S_M1_plus)
+    S_M2_10 = predict_sims(M2_10, P, w_index)
+    print ('S_M2_10: ', S_M2_10)
+    S_M2_50 = predict_sims(M2_50, P, w_index)
+    print (S_M2_50)
+    S_M2_100 = predict_sims(M2_100, P, w_index)
+    print (S_M2_100)
     
-        
+    #step 8
+    pc_M1 = sp.stats.pearsonr(S, S_M1)
+    print ('pearson-correlation coefficient for M1: ', pc_M1)
+    pc_M1_plus = sp.stats.pearsonr(S, S_M1_plus)
+    print ('pearson-correlation coefficient for M1_plus: ', pc_M1_plus)
+    pc_M2_10 = sp.stats.pearsonr(S, S_M2_10)
+    print ('pearson-correlation coefficient for M2_10: ', pc_M2_10)    
+    pc_M2_50 = sp.stats.pearsonr(S, S_M2_50)
+    print ('pearson-correlation coefficient for M2_50: ', pc_M2_50)
+    pc_M2_100 = sp.stats.pearsonr(S, S_M2_100)
+    print ('pearson-correlation coefficient for M2_100: ', pc_M2_100)
     
     pass
 
