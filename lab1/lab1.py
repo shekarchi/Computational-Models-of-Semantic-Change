@@ -149,9 +149,9 @@ def main():
     S_M2_10 = predict_sims(M2_10, P, w_index)
     print ('S_M2_10: ', S_M2_10)
     S_M2_50 = predict_sims(M2_50, P, w_index)
-    print (S_M2_50)
+    print ('S_M2_50: ', S_M2_50)
     S_M2_100 = predict_sims(M2_100, P, w_index)
-    print (S_M2_100)
+    print ('S_M2_100: ', S_M2_100)
     
     #step 8
     pc_M1 = sp.stats.pearsonr(S, S_M1)
