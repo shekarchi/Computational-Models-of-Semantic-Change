@@ -1,0 +1,17 @@
+This is the result after some smoothing modifications:
+
+pearson-correlation coefficient for M1:  (0.14186678886345638, 0.25962130953623669)
+pearson-correlation coefficient for M1_plus:  (0.29579175729513912, 0.016744228414444336)
+pearson-correlation coefficient for M2_10:  (0.077734295196607309, 0.53823376816404234)
+pearson-correlation coefficient for M2_50:  (0.2565337907475061, 0.039134575373536568)
+pearson-correlation coefficient for M2_100:  (0.32691927823775319,0.0081604375478647771)
+
+This is the result for pre-trained word2vec model:
+
+pearson-correlation coefficient for word2vec: 0.76
+
+For step 4:
+accuracy for LSA_100 - over semantic data = 0.008
+                     - over syntactic data = 0.0
+accuracy for word2vec - over semantic data = 0.0
+                      - over syntactic data = 0.002
