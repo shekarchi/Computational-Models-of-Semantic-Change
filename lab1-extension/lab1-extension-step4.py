@@ -125,7 +125,6 @@ def extract_word_embedding(words):
     for w in words:
         try:
             vectors[w] = model[w]
-            #print(w, model[w])
         except (KeyError):
             print(w, 'has not been found')
             continue
@@ -136,7 +135,6 @@ def make_LSA_model(M, words, word_index):
     for w in words:
         index = word_index[w]
         vect = M[index]
-#        print (type(vect), vect)
         model[w] = vect
     print('\n#LSA model has been made of length: ', len(model))
     return model
@@ -170,11 +168,9 @@ def find_intersected_data(LSA_model, word2vec_model, input_file):
     return intersected_data
 
 def predict_closest_word(W1, W2, W3):
-    p = []
-    for i in range(len(W1)):
-        res = W1[i]-W2[i]+W3[i]
-        p.append(res)
-    return np.array(p)
+    p = np.add(W3, W2)
+    q = np.subtract(p, W1)
+    return q
 
 def find_closest_word(model, w):
     max_word = ''
@@ -213,7 +209,7 @@ def compute_accuracy_w2v(model, data):
             print (line)
             continue
         total += 1
-        pred = model.most_similar(positive=[words[0], words[1]], negative=[words[2]])
+        pred = model.most_similar(positive=[words[2], words[1]], negative=[words[0]])
         if pred[0][0] == words[3]:
             trues += 1
     return trues/total
@@ -258,20 +254,17 @@ def main():
     from gensim.models.keyedvectors import KeyedVectors
     w2v_model = KeyedVectors.load_word2vec_format('../../Data/GoogleNews-vectors-negative300.bin', binary=True)
 
-    int_sem_data = find_intersected_data(LSA_100, w2v_model, './analogy_semantic_test_data')
+    int_sem_data = find_intersected_data(LSA_100, w2v_model, '../../Data/analogy_semantic_test_data')
     
     LSA_semantic_accuracy = compute_accuracy_given_model(LSA_100, int_sem_data)
     print('LSA_100 accuracy for semantic data: ', LSA_semantic_accuracy)#LSA_100 accuracy for semantic data:  0.008403361344537815
-    
     w2v_semantic_accuracy = compute_accuracy_w2v(w2v_model, int_sem_data)
-    print('word2vec accuracy for semantic data: ', w2v_semantic_accuracy) #0.0
-    
-    
+    print('word2vec accuracy for semantic data: ', w2v_semantic_accuracy) #0.0 
+##   
     int_syn_data = find_intersected_data(LSA_100, w2v_model, '../../Data/analogy_syntactic_test_data')
     
     w2v_syntactic_accuracy = compute_accuracy_w2v(w2v_model, int_syn_data)
     print('word2vec accuracy for syntactic data: ', w2v_syntactic_accuracy)
-    
     LSA_syntactic_accuracy = compute_accuracy_given_model(LSA_100, int_syn_data)
     print('LSA_100 accuracy for syntactic data: ', LSA_syntactic_accuracy)
 
