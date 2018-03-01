@@ -1,0 +1,59 @@
+'''
+for all words w in the list in the assignment:
+    *** take top n (e.g. 20) similar words for w, for each decade
+    find the rank-biased overlap (https://github.com/ragrawal/measures) between all decades
+    find the correlation (and the p-value of the correlation) between time and rank-biased overlap
+    analyze the results (plot them, do they make sense? etc.)
+'''
+
+from collections import defaultdict
+import myRBO
+
+#right now I just assume the list of the target words is available here:
+words = ['zero', 'abondon', 'star', 'idea'] #for simplicity now I assume that this is a List
+decades = range(1850, 2000, 10) #for example
+
+def top_n_sim_words (lang_model, word, n):
+    top_n = lang_model.most_similar(positive=word, topn=n) #the result can be a list of (word, score)
+    top_n_words = []
+    for t in top_n:
+        top_n_words.append(t[0])
+    return top_n_words
+
+def model_semantic_change_given_words(lang_model, words, times=decades):
+    semantic_change_model = defaultdict(list) # it is a dictionary of {word, list[list_of_top_n_words]
+    n = 10
+    for time in times:
+        lang_model_t = lang_model[time]
+        for word in words:
+            top_n_words = top_n_sim_words(lang_model_t, word, n) #the result can be a list of words
+            semantic_change_model[word].append(top_n_words)
+    return semantic_change_model
+
+def analyze_and_save_change(word, top_n_sim, change_rates):
+    '''
+    we should discuss this later
+    '''
+    pass
+
+def main():
+    #preparing the language model that is built already
+    lang_model = {} # I assume it is a dict of word2vec models; lang_model[time] is
+                    # a word2vec - time is in range(1850, 2000, 50) for example.
+    semantic_change_model = model_semantic_change_given_words(lang_model, words, decades)
+    semantic_changes = {}
+    for word, top_ns in semantic_change_model.items():
+        change_rates = [] # must be of size len(times)-1
+        p = 0.9
+        for i in range(int(len(top_ns)-1)):
+            change = myRBO.score(top_ns[i], top_ns[i+1], p)
+            change_rates.append(change)
+        semantic_changes[word] = change_rates
+        analyze_and_save_change(word, top_ns, change_rates)
+
+
+if __name__ == "__main__":
+     main()
+
+
+
