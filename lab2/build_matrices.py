@@ -18,7 +18,7 @@ def m(ngram_files, word_file, from_, to):
     '''
 
     words = [line.split()[0].lower() for line in open(word_file).readlines()]
-    words = np.random.choice(words, size=90000, replace=False)
+    #words = np.random.choice(words, size=25000, replace=False)
     #words = np.random.choice(words, size=10, replace=False)#zahra
     words = frozenset(words)
     print("number of top words: {}".format(len(words)))
@@ -38,10 +38,12 @@ def m(ngram_files, word_file, from_, to):
         t2 = ngram[-1].split('_')[0]
         if t1 in words:
             for c in ngram[1:]:
+                c = c.split('_')[0]
                 if c in words:
                     d[t1][c] += match_count
         if t2 in words:
             for c in ngram[:-1]:
+                c = c.split('_')[0]
                 if c in words:
                     d[t2][c] += match_count
 
@@ -94,13 +96,31 @@ def pmi(M, k=1, normalized=False):
     '''
 
     # remove columns and rows that are all 0s
+    print('removing all-0 rows and columns')
     M_ = M[(M.T != 0).any()]
     M = M_.T[(M_ != 0).any()].T
+    del M_
+    gc.collect()
 
+    print('computing P_xy')
     P_xy = M / M.values.sum()
+
+    print('computing P_x')
     P_x = M.sum(axis=0) / M.values.sum()
+    pmi = P_xy.div(P_x, axis=1)
+    del P_x
+    gc.collect()
+
+    print('computing P_y')
     P_y = M.sum(axis=1) / M.values.sum()
-    pmi = np.log2(P_xy.div(P_x, axis=1).div(P_y, axis=0))
+    pmi = pmi.div(P_y, axis=0)
+    del P_y
+    gc.collect()
+
+    print('computing pmi')
+    pmi = np.log2(pmi)
+    gc.collect()
+
     if normalized:
         return pmi.div(-np.log(P_xy))
     return pmi
@@ -110,9 +130,9 @@ if __name__ == "__main__":
     urls = get_fiction_filenames()
     print("total files: {}".format(len(urls)))
     random.shuffle(urls) # shuffle
-    nprocesses = 6
+    nprocesses = 64
 
-    svd = TruncatedSVD(n_components=300, n_iter=20, random_state=4)
+    svd = TruncatedSVD(n_components=500, algorithm="arpack")
 
     def chunk(xs, n):
         '''Split the list, xs, into n chunks'''
@@ -124,8 +144,8 @@ if __name__ == "__main__":
     chunks = chunk(urls, nprocesses)
 
     #for year in range(1800, 2000, 100):
-    for year in [1800, 1850, 1900, 1950, 2000]:
-        word_file = "./top_unigrams_100000/{}".format(str(year+5))
+    for year in [1850, 1900, 1950, 2000]:
+        word_file = "./top_unigrams_200000/{}".format(str(year+5))
         from_ = year
         to = year + 9
         #'''
@@ -174,17 +194,19 @@ if __name__ == "__main__":
         '''
 
         index = M.index
+        print('converting to numpy matrix ...')
         M = M.as_matrix()
         gc.collect()
-        M_300d = svd.fit_transform(M)
+        print('computing svd...')
+        M_500d = svd.fit_transform(M)
         del M
         gc.collect()
-        df300 = pd.DataFrame(M_300d, index=index)
-        del M_300d
+        df500 = pd.DataFrame(M_500d, index=index)
+        del M_500d
         gc.collect()
-        out = open('./matrices/M.{}.300d.txt'.format(year), 'w')
-        out.write('{} {}\n'.format(df300.shape[0], df300.shape[1]))
-        df300.to_csv(out, sep=' ', header=False)
+        out = open('./matrices/M.{}.500d.txt'.format(year), 'w')
+        out.write('{} {}\n'.format(df500.shape[0], df500.shape[1]))
+        df500.to_csv(out, sep=' ', header=False)
         out.close()
-        del df300
+        del df500
         gc.collect()

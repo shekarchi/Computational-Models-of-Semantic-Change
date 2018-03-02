@@ -13,7 +13,7 @@ def main():
     unigram_filename_template = 'googlebooks-eng-fiction-all-1gram-20120701-{}.gz'
     unigram_filenames = [ngrams_loc + unigram_filename_template.format(let) \
             for let in string.ascii_lowercase]
-    top_n_unigrams_per_decade(100000, unigram_filenames, save_to_dir='top_unigrams_100000')
+    top_n_unigrams_per_decade(200000, unigram_filenames, save_to_dir='top_unigrams_200000')
 
 
 def top_n_unigrams_per_decade(n, filenames, from_=1800, to=2010,  save_to_dir=False):
@@ -42,6 +42,8 @@ def top_n_unigrams_per_decade(n, filenames, from_=1800, to=2010,  save_to_dir=Fa
             fieldnames=['unigram', 'year', 'match_count', 'volume_count']
             reader = csv.DictReader(f, delimiter='\t', fieldnames=fieldnames)
             for row in reader:
+                for k in row:
+                    row[k] = row[k].lower()
 
                 year = int(row['year'])
                 if year < from_ or to < year:
@@ -65,7 +67,7 @@ def top_n_unigrams_per_decade(n, filenames, from_=1800, to=2010,  save_to_dir=Fa
     for y, top in hs.items():
         filename = os.path.join(save_to_dir, str(y))
         with open(filename, 'w') as f:
-            for count, unigram in top:
+            for count, unigram in sorted(top, key=lambda x: x[0], reverse=True):
                 f.write("{}\t{}\n".format(unigram, str(count)))
 
 

@@ -10,22 +10,32 @@ import pandas as pd
 def read_ngram_files(filenames):
     for i, fname in enumerate(filenames):
 
-        if i % 50 == 0:
+        if i % 20 == 0:
             print(i)
 
         print('loading file {}'.format(fname))
         gzresp = urlopen(fname)
-        unique_filename = "./tmp/" + str(uuid.uuid4())
+        unique_filename = "./tmp/" + fname.split('-')[-1].split('.')[0] + "-" + str(uuid.uuid4())
         tempgz = open(unique_filename, "wb")
-        tempgz.write(gzresp.read())
+
+        '''
+        try:
+            page = gzresp.read()
+        except (http.client.IncompleteRead) as e:
+            page = e.partial
+        '''
+        page = gzresp.read()
+        tempgz.write(page)
         tempgz.close()
 
         with gzip.open(unique_filename, 'rt') as f:
             for line in f:
+                line = line.lower()
                 row = line.strip().split('\t')
                 yield row
 
         os.remove(unique_filename)
+        print('removed file {}'.format(fname))
 
 def get_fiction_filenames():
     url = "http://storage.googleapis.com/books/ngrams/books/datasetsv2.html"

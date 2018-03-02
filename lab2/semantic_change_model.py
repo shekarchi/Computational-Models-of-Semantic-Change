@@ -43,7 +43,7 @@ def top_n_sim_words (lang_model, word, n):
 
 def model_semantic_change_given_words(lang_model, words, times=decades):
     semantic_change_model = defaultdict(list) # it is a dictionary of {word, list[list_of_top_n_words]
-    n = 100
+    n = 20
     for time in times:
         lang_model_t = lang_model[time]
         for word in words:
@@ -160,13 +160,25 @@ def main():
             word_change_mapping.append((word, chng))
 
     word_change_mapping = sorted(word_change_mapping, key=lambda ch: ch[1])
-    M = 100
+    M = 200
     print('\n== The top M={} least changing words:'.format(M))
+    least_changing = []
     for i in range(M):
         print (word_change_mapping[i])
+        least_changing.append(word_change_mapping[i][0])
     print('\n== The top M={} most changing words:'.format(M))
+    most_changing = []
     for i in range(1,M+1):
-        print(word_change_mapping[int(-1*i)])
+        print(word_change_mapping[int(-1*i - 135)])
+        most_changing.append(word_change_mapping[int(-1*i)][0])
+    l = open("least_changing","w")
+    for w in least_changing:
+        l.write(w + ' ')
+    l.close()
+    m = open("most_changing", "w")
+    for w in most_changing:
+        m.write(w + ' ')
+    m.close()
     output.close()
 
 
